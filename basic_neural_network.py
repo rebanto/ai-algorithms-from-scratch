@@ -1,5 +1,8 @@
 import numpy as np
 from sklearn.datasets import make_moons # a simple classification dataset
+import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+import pandas as pd
 
 class Dense: # fully connected layer
     def __init__(self, in_features, out_features):
@@ -70,6 +73,27 @@ class SGD:
 X, y = make_moons(n_samples=500, noise=0.3, random_state=42)
 y = y.reshape(-1, 1)
 
+df = pd.DataFrame(X, columns=['X_1', 'X_2'])
+df['y'] = y
+
+# first 10 rows
+df_head = df.head(10)
+
+print(df_head.to_markdown(index=False, numalign="left", stralign="left"))
+
+plt.figure(figsize=(8, 6))
+scatter = plt.scatter(X[:, 0], X[:, 1], c=y, cmap='viridis', marker='o', alpha=0.6, edgecolors='w', linewidth=0.5)
+plt.title('Make Moons Dataset')
+plt.xlabel('X_1')
+plt.ylabel('X_2')
+plt.grid(True, linestyle='--', alpha=0.6)
+
+legend1 = plt.legend(*scatter.legend_elements(), title='Classes')
+plt.gca().add_artist(legend1)
+
+plt.show()
+
+
 # network architecture
 dense1, relu = Dense(2, 32), ReLU()
 dense2, sigmoid = Dense(32, 1), Sigmoid()
@@ -99,3 +123,46 @@ for epoch in range(NUM_EPOCHS):
     # optimization (params are updated based on calculated gradients)
     optimizer.step(dense1)
     optimizer.step(dense2)
+
+
+# After training: create a grid of points and compute model predictions
+# to visualize the decision boundary alongside the training data.
+print("Final evaluation and plotting decision boundary...")
+dense1.forward(X)
+relu.forward(dense1.output)
+dense2.forward(relu.output)
+sigmoid.forward(dense2.output)
+final_loss = loss_fn.forward(sigmoid.output, y)
+final_acc = np.mean((sigmoid.output > 0.5).astype(int) == y)
+print(f"final: loss={final_loss:.3f}, acc={final_acc:.3f}")
+
+# Grid for plotting decision boundary
+pad = 0.5
+x_min, x_max = X[:, 0].min() - pad, X[:, 0].max() + pad
+y_min, y_max = X[:, 1].min() - pad, X[:, 1].max() + pad
+xx, yy = np.meshgrid(np.linspace(x_min, x_max, 300), np.linspace(y_min, y_max, 300))
+grid = np.c_[xx.ravel(), yy.ravel()]
+
+# Forward pass on the grid
+dense1.forward(grid); relu.forward(dense1.output)
+dense2.forward(relu.output); sigmoid.forward(dense2.output)
+Z = sigmoid.output.reshape(xx.shape)
+
+# Plot the decision boundary and data points
+plt.figure(figsize=(8, 6))
+cf = plt.contourf(xx, yy, Z, levels=50, cmap='viridis', alpha=0.3)
+boundary = plt.contour(xx, yy, Z, levels=[0.5], colors='k', linewidths=1)
+scatter = plt.scatter(X[:, 0], X[:, 1], c=y.flatten(), cmap='viridis', marker='o', alpha=0.6, edgecolors='w', linewidth=0.5)
+plt.title('Decision Boundary — Trained Model')
+plt.xlabel('X_1')
+plt.ylabel('X_2')
+plt.grid(True, linestyle='--', alpha=0.6)
+# Add a colorbar for the probability heatmap
+cbar = plt.colorbar(cf)
+cbar.set_label('P(class=1)')
+# Create a combined legend: class handles + decision boundary handle
+class_handles, class_labels = scatter.legend_elements()
+boundary_handle = Line2D([0], [0], color='k', lw=1)
+plt.legend([*class_handles, boundary_handle], [*class_labels, 'Decision boundary'], title='Classes/Boundary')
+plt.show()
+
