@@ -48,6 +48,17 @@ class BinaryCrossentropy:
         y_pred = np.clip(y_pred, 1e-7, 1 - 1e-7)
         self.dinputs = (-(y_true / y_pred) + (1 - y_true) / (1 - y_pred)) / samples
 
+class MeanSquaredError:
+    def forward(self, y_pred, y_true):
+        # L = 1/N * sum((y_true - y_pred)^2)
+        self.diff = y_pred - y_true
+        return np.mean(self.diff**2)
+
+    def backward(self, y_pred, y_true):
+        # dL/d(y_pred) = 2/N * sum(y_pred - y_true)
+        samples = len(y_pred)
+        self.dinputs = (2 * self.diff) / samples
+
 class SGD:
     def __init__(self, lr=0.1):
         self.lr = lr
