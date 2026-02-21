@@ -1,8 +1,8 @@
 # Logistic Regression From Scratch
 
-After building the neural network, coming back to implement logistic regression was a bit of a "wait, I already basically did this" moment. Logistic regression is literally just a neural network with no hidden layers. It's: input → single linear transformation → sigmoid → binary probability. The exact same pieces, just assembled without a hidden layer in between.
+After getting linear regression working, the next logical step was to try classification. Logistic regression is basically the bridge between simple line-fitting and "real" neural networks. It’s the same basic setup as linear regression, but with a twist: instead of predicting a continuous number, we’re predicting the probability of a category.
 
-That connection made the math feel much more familiar. The sigmoid I already had. Binary cross-entropy I already had. Even the backward pass through BCE + sigmoid is the same. The only difference is there are no intermediate layers.
+It's essentially a neural network with zero hidden layers. It: input → linear transformation → sigmoid → binary probability. 
 
 ## The Problem
 

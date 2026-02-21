@@ -25,13 +25,13 @@ python run_all.py rnn           # runs the Hamlet text generator
 
 I wrote down the math and the "why" for each algorithm. If you want to see the derivatives or how the convolution stride tricks work, check these out:
 
-- [1. Linear Regression](documentation/linear_regression.md) (The OG "line fitting")
-- [2. Logistic Regression](documentation/logistic_regression.md) (Neural networks... but simplified)
-- [3. K-Nearest Neighbors](documentation/knn.md) (The absolute simplest way to classify)
-- [4. Gaussian Naive Bayes](documentation/naive_bayes.md) (Probability is powerful)
-- [5. Convolutional Neural Network](documentation/cnn.md) (OCR on MNIST digits)
-- [6. Recurrent Neural Network](documentation/rnn.md) (Predicting the next character)
-- [7. Basic Neural Network](documentation/basic_neural_network.md) (Where it all started)
+- [1. Linear Regression](documentation/linear_regression.md) (The starting point: fitting a line)
+- [2. Logistic Regression](documentation/logistic_regression.md) (Stepping up to classification)
+- [3. K-Nearest Neighbors](documentation/knn.md) (Geometric similarity)
+- [4. Gaussian Naive Bayes](documentation/naive_bayes.md) (Probabilistic classification)
+- [5. The Bridge: Neural Networks](documentation/basic_neural_network.md) (Combining it all into a modular MLP)
+- [6. Convolutional Neural Network](documentation/cnn.md) (The spatial challenge for images)
+- [7. Recurrent Neural Network](documentation/rnn.md) (The "final boss" of bookkeeping and memory)
 
 ---
 

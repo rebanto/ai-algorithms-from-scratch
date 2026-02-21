@@ -1,8 +1,8 @@
 # Convolutional Neural Network From Scratch
 
-This was the most intimidating thing I've implemented so far. Backpropagating through a convolution sounds almost unapproachable when you first hear about it, but it's still just chain rule — just the chain rule applied to a sliding window operation instead of a simple matrix multiply.
+This was the biggest jump in complexity for spatial data. Backpropagating through a convolution sounds almost unapproachable when you first hear about it, but it's still just the chain rule applied to a sliding window. It takes everything I learned from the basic MLP and pushes it into the 2D world of images.
 
-The payoff is real though. CNNs are why we went from barely being able to classify blurry images in the early 2000s to superhuman performance on ImageNet by 2012. The key idea is so simple it's almost unfair: use the same set of weights everywhere on the image. That's it. That "weight sharing" is what makes them powerful.
+The payoff is huge. CNNs are why we went from barely being able to classify blurry images to superhuman performance on ImageNet. The key idea is "weight sharing"—using the same set of weights everywhere on the image.
 
 ## Why Not Just Use a Dense Layer on Images?
 

@@ -1,8 +1,8 @@
-# The Original Neural Network
+# The Bridge: Multi-Layer Neural Networks
 
-This was my very first attempt at building a neural network "for real." I started here before moving on to the more complex CNNs and RNNs. It's a simple two-layer MLP (Multi-Layer Perceptron), but it's enough to learn the non-linear "moons" dataset, which a basic linear model just can't handle.
+This is where all the previous pieces finally come together. After building linear and logistic models, I realized they’re just single-layer networks. To solve more complex problems (like the non-linear "moons" dataset), I needed to stack these layers and add some hidden neurons. This is a simple two-layer MLP (Multi-Layer Perceptron) that finally feels like "Deep Learning."
 
-Building this taught me that a neural network is really just a bunch of matrix multiplications stacked together, separated by some "rules" (activation functions) that keep it from just collapsing back into a simple linear equation.
+Building this was about modularity: taking the matrix multiplications and activation functions from the earlier projects and turning them into a system where I could easily add more layers.
 
 ## What's Inside?
 
