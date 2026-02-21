@@ -58,77 +58,78 @@ class KNN:
         return np.mean(self.predict(X) == y)
 
 
-# ---- data ----
+if __name__ == '__main__':
+    # ---- data ----
 
-X, y = make_moons(n_samples=600, noise=0.3, random_state=42)
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
+    X, y = make_moons(n_samples=600, noise=0.3, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
 
-os.makedirs('plots', exist_ok=True)
+    os.makedirs('plots', exist_ok=True)
 
-# ---- decision boundary grid setup ----
+    # ---- decision boundary grid setup ----
 
-pad = 0.5
-x_min, x_max = X[:, 0].min() - pad, X[:, 0].max() + pad
-y_min, y_max = X[:, 1].min() - pad, X[:, 1].max() + pad
-# 150x150 to keep prediction time manageable (150^2 = 22500 points each)
-xx, yy = np.meshgrid(np.linspace(x_min, x_max, 150),
-                     np.linspace(y_min, y_max, 150))
-grid = np.c_[xx.ravel(), yy.ravel()]
+    pad = 0.5
+    x_min, x_max = X[:, 0].min() - pad, X[:, 0].max() + pad
+    y_min, y_max = X[:, 1].min() - pad, X[:, 1].max() + pad
+    # 150x150 to keep prediction time manageable (150^2 = 22500 points each)
+    xx, yy = np.meshgrid(np.linspace(x_min, x_max, 150),
+                         np.linspace(y_min, y_max, 150))
+    grid = np.c_[xx.ravel(), yy.ravel()]
 
-# ---- plot decision boundaries for different K values ----
+    # ---- plot decision boundaries for different K values ----
 
-k_values = [1, 5, 15, 31]
-fig, axes = plt.subplots(2, 2, figsize=(12, 10))
-axes = axes.ravel()
+    k_values = [1, 5, 15, 31]
+    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+    axes = axes.ravel()
 
-for idx, k in enumerate(k_values):
-    knn = KNN(k=k)
-    knn.fit(X_train, y_train)
-    Z = knn.predict_proba(grid).reshape(xx.shape)
-    test_acc = knn.score(X_test, y_test)
+    for idx, k in enumerate(k_values):
+        knn = KNN(k=k)
+        knn.fit(X_train, y_train)
+        Z = knn.predict_proba(grid).reshape(xx.shape)
+        test_acc = knn.score(X_test, y_test)
 
-    ax = axes[idx]
-    ax.contourf(xx, yy, Z, levels=50, cmap='RdBu', alpha=0.4)
-    ax.contour(xx, yy, Z, levels=[0.5], colors='k', linewidths=1.5)
-    ax.scatter(X_train[:, 0], X_train[:, 1], c=y_train, cmap='RdBu',
-               edgecolors='w', linewidth=0.4, alpha=0.8, s=25)
-    ax.set_title(f'K = {k}  |  Test acc = {test_acc:.3f}', fontsize=12)
-    ax.set_xlabel('X₁')
-    ax.set_ylabel('X₂')
-    ax.grid(True, linestyle='--', alpha=0.4)
+        ax = axes[idx]
+        ax.contourf(xx, yy, Z, levels=50, cmap='RdBu', alpha=0.4)
+        ax.contour(xx, yy, Z, levels=[0.5], colors='k', linewidths=1.5)
+        ax.scatter(X_train[:, 0], X_train[:, 1], c=y_train, cmap='RdBu',
+                   edgecolors='w', linewidth=0.4, alpha=0.8, s=25)
+        ax.set_title(f'K = {k}  |  Test acc = {test_acc:.3f}', fontsize=12)
+        ax.set_xlabel('X₁')
+        ax.set_ylabel('X₂')
+        ax.grid(True, linestyle='--', alpha=0.4)
 
-plt.suptitle('KNN — Effect of K on Decision Boundary', fontsize=14, y=1.01)
-plt.tight_layout()
-plt.savefig(os.path.join('plots', 'knn_boundaries.png'), dpi=150, bbox_inches='tight')
-plt.show()
+    plt.suptitle('KNN — Effect of K on Decision Boundary', fontsize=14, y=1.01)
+    plt.tight_layout()
+    plt.savefig(os.path.join('plots', 'knn_boundaries.png'), dpi=150, bbox_inches='tight')
+    plt.show()
 
-# ---- accuracy vs K curve ----
+    # ---- accuracy vs K curve ----
 
-k_range   = range(1, 51, 2)
-train_acc = []
-test_acc  = []
+    k_range   = range(1, 51, 2)
+    train_acc = []
+    test_acc  = []
 
-for k in k_range:
-    knn = KNN(k=k)
-    knn.fit(X_train, y_train)
-    train_acc.append(knn.score(X_train, y_train))
-    test_acc.append(knn.score(X_test,  y_test))
+    for k in k_range:
+        knn = KNN(k=k)
+        knn.fit(X_train, y_train)
+        train_acc.append(knn.score(X_train, y_train))
+        test_acc.append(knn.score(X_test,  y_test))
 
-best_k   = list(k_range)[np.argmax(test_acc)]
-best_acc = max(test_acc)
-print(f"Best K on test set: K={best_k}  (acc={best_acc:.4f})")
+    best_k   = list(k_range)[np.argmax(test_acc)]
+    best_acc = max(test_acc)
+    print(f"Best K on test set: K={best_k}  (acc={best_acc:.4f})")
 
-plt.figure(figsize=(9, 5))
-plt.plot(list(k_range), train_acc, label='Train Accuracy', marker='o', markersize=4, linewidth=1.5)
-plt.plot(list(k_range), test_acc,  label='Test Accuracy',  marker='s', markersize=4, linewidth=1.5)
-plt.axvline(best_k, color='gray', linestyle='--', alpha=0.7, label=f'Best K={best_k}')
-plt.xlabel('K (number of neighbors)')
-plt.ylabel('Accuracy')
-plt.title('KNN — Accuracy vs K (Bias–Variance Tradeoff)')
-plt.legend()
-plt.grid(True, linestyle='--', alpha=0.6)
-plt.tight_layout()
-plt.savefig(os.path.join('plots', 'accuracy_vs_k.png'), dpi=150)
-plt.show()
+    plt.figure(figsize=(9, 5))
+    plt.plot(list(k_range), train_acc, label='Train Accuracy', marker='o', markersize=4, linewidth=1.5)
+    plt.plot(list(k_range), test_acc,  label='Test Accuracy',  marker='s', markersize=4, linewidth=1.5)
+    plt.axvline(best_k, color='gray', linestyle='--', alpha=0.7, label=f'Best K={best_k}')
+    plt.xlabel('K (number of neighbors)')
+    plt.ylabel('Accuracy')
+    plt.title('KNN — Accuracy vs K (Bias–Variance Tradeoff)')
+    plt.legend()
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.tight_layout()
+    plt.savefig(os.path.join('plots', 'accuracy_vs_k.png'), dpi=150)
+    plt.show()

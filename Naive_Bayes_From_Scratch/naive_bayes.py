@@ -70,90 +70,91 @@ class GaussianNaiveBayes:
         return np.mean(self.predict(X) == y)
 
 
-# ---- data ----
+if __name__ == '__main__':
+    # ---- data ----
 
-X, y = make_blobs(n_samples=600, centers=3, cluster_std=1.5, random_state=42)
+    X, y = make_blobs(n_samples=600, centers=3, cluster_std=1.5, random_state=42)
 
-# ---- train ----
+    # ---- train ----
 
-model = GaussianNaiveBayes()
-model.fit(X, y)
-print(f"Training accuracy: {model.score(X, y):.4f}")
+    model = GaussianNaiveBayes()
+    model.fit(X, y)
+    print(f"Training accuracy: {model.score(X, y):.4f}")
 
-os.makedirs('plots', exist_ok=True)
+    os.makedirs('plots', exist_ok=True)
 
-# ---- decision boundary ----
+    # ---- decision boundary ----
 
-pad = 1.0
-x_min, x_max = X[:, 0].min() - pad, X[:, 0].max() + pad
-y_min, y_max = X[:, 1].min() - pad, X[:, 1].max() + pad
-xx, yy = np.meshgrid(np.linspace(x_min, x_max, 300),
-                     np.linspace(y_min, y_max, 300))
-grid = np.c_[xx.ravel(), yy.ravel()]
+    pad = 1.0
+    x_min, x_max = X[:, 0].min() - pad, X[:, 0].max() + pad
+    y_min, y_max = X[:, 1].min() - pad, X[:, 1].max() + pad
+    xx, yy = np.meshgrid(np.linspace(x_min, x_max, 300),
+                         np.linspace(y_min, y_max, 300))
+    grid = np.c_[xx.ravel(), yy.ravel()]
 
-Z = model.predict(grid).reshape(xx.shape)
+    Z = model.predict(grid).reshape(xx.shape)
 
-cmap = plt.cm.get_cmap('tab10', len(model.classes))
+    cmap = plt.cm.get_cmap('tab10', len(model.classes))
 
-fig, ax = plt.subplots(figsize=(9, 7))
-ax.contourf(xx, yy, Z, alpha=0.2, cmap='tab10',
-            levels=np.arange(-0.5, len(model.classes)), vmin=0, vmax=len(model.classes)-1)
-ax.contour(xx, yy, Z, colors='k', linewidths=1,
-           levels=np.arange(0.5, len(model.classes)-0.5))
+    fig, ax = plt.subplots(figsize=(9, 7))
+    ax.contourf(xx, yy, Z, alpha=0.2, cmap='tab10',
+                levels=np.arange(-0.5, len(model.classes)), vmin=0, vmax=len(model.classes)-1)
+    ax.contour(xx, yy, Z, colors='k', linewidths=1,
+               levels=np.arange(0.5, len(model.classes)-0.5))
 
-scatter = ax.scatter(X[:, 0], X[:, 1], c=y, cmap='tab10',
-                     edgecolors='white', linewidth=0.5, s=50, alpha=0.9,
-                     vmin=0, vmax=len(model.classes)-1)
+    scatter = ax.scatter(X[:, 0], X[:, 1], c=y, cmap='tab10',
+                         edgecolors='white', linewidth=0.5, s=50, alpha=0.9,
+                         vmin=0, vmax=len(model.classes)-1)
 
-# draw 1-sigma Gaussian ellipses for each class -- shows what the model "sees"
-for c in model.classes:
-    std = np.sqrt(model.variances[c])
-    ellipse = Ellipse(
-        xy=model.means[c],
-        width=2 * std[0], height=2 * std[1],
-        edgecolor=cmap(c), facecolor='none', linewidth=2.5,
-        linestyle='--', zorder=5
-    )
-    ax.add_patch(ellipse)
-    ax.plot(*model.means[c], 'x', color=cmap(c),
-            markersize=11, markeredgewidth=2.5, zorder=6, label=f'Class {c} mean')
-
-ax.set_title('Gaussian Naive Bayes — Decision Boundary + 1σ Ellipses')
-ax.set_xlabel('X₁')
-ax.set_ylabel('X₂')
-plt.colorbar(scatter, ax=ax, ticks=list(model.classes), label='Class')
-ax.legend(loc='upper right', fontsize=8)
-ax.grid(True, linestyle='--', alpha=0.5)
-plt.tight_layout()
-plt.savefig(os.path.join('plots', 'naive_bayes_boundary.png'), dpi=150)
-plt.show()
-
-# ---- per-feature distribution plot ----
-
-fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-feature_names = ['X₁', 'X₂']
-x_vals = np.linspace(X.min() - 1, X.max() + 1, 300)
-
-for feat_idx, ax in enumerate(axes):
+    # draw 1-sigma Gaussian ellipses for each class -- shows what the model "sees"
     for c in model.classes:
-        mu  = model.means[c][feat_idx]
-        var = model.variances[c][feat_idx]
-        # plot learned Gaussian PDF for this feature/class pair
-        pdf = (1 / np.sqrt(2 * np.pi * var)) * np.exp(-0.5 * (x_vals - mu) ** 2 / var)
-        ax.plot(x_vals, pdf, color=cmap(c), linewidth=2, label=f'Class {c}')
-        ax.axvline(mu, color=cmap(c), linestyle=':', alpha=0.7)
+        std = np.sqrt(model.variances[c])
+        ellipse = Ellipse(
+            xy=model.means[c],
+            width=2 * std[0], height=2 * std[1],
+            edgecolor=cmap(c), facecolor='none', linewidth=2.5,
+            linestyle='--', zorder=5
+        )
+        ax.add_patch(ellipse)
+        ax.plot(*model.means[c], 'x', color=cmap(c),
+                markersize=11, markeredgewidth=2.5, zorder=6, label=f'Class {c} mean')
 
-    # overlay actual data histogram
-    for c in model.classes:
-        ax.hist(X[y == c, feat_idx], bins=25, density=True,
-                alpha=0.2, color=cmap(c))
-
-    ax.set_title(f'Learned Gaussians — Feature {feature_names[feat_idx]}')
-    ax.set_xlabel('Value')
-    ax.set_ylabel('Density')
-    ax.legend()
+    ax.set_title('Gaussian Naive Bayes — Decision Boundary + 1σ Ellipses')
+    ax.set_xlabel('X₁')
+    ax.set_ylabel('X₂')
+    plt.colorbar(scatter, ax=ax, ticks=list(model.classes), label='Class')
+    ax.legend(loc='upper right', fontsize=8)
     ax.grid(True, linestyle='--', alpha=0.5)
+    plt.tight_layout()
+    plt.savefig(os.path.join('plots', 'naive_bayes_boundary.png'), dpi=150)
+    plt.show()
 
-plt.tight_layout()
-plt.savefig(os.path.join('plots', 'feature_distributions.png'), dpi=150)
-plt.show()
+    # ---- per-feature distribution plot ----
+
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+    feature_names = ['X₁', 'X₂']
+    x_vals = np.linspace(X.min() - 1, X.max() + 1, 300)
+
+    for feat_idx, ax in enumerate(axes):
+        for c in model.classes:
+            mu  = model.means[c][feat_idx]
+            var = model.variances[c][feat_idx]
+            # plot learned Gaussian PDF for this feature/class pair
+            pdf = (1 / np.sqrt(2 * np.pi * var)) * np.exp(-0.5 * (x_vals - mu) ** 2 / var)
+            ax.plot(x_vals, pdf, color=cmap(c), linewidth=2, label=f'Class {c}')
+            ax.axvline(mu, color=cmap(c), linestyle=':', alpha=0.7)
+
+        # overlay actual data histogram
+        for c in model.classes:
+            ax.hist(X[y == c, feat_idx], bins=25, density=True,
+                    alpha=0.2, color=cmap(c))
+
+        ax.set_title(f'Learned Gaussians — Feature {feature_names[feat_idx]}')
+        ax.set_xlabel('Value')
+        ax.set_ylabel('Density')
+        ax.legend()
+        ax.grid(True, linestyle='--', alpha=0.5)
+
+    plt.tight_layout()
+    plt.savefig(os.path.join('plots', 'feature_distributions.png'), dpi=150)
+    plt.show()

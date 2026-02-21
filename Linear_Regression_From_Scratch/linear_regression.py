@@ -64,63 +64,64 @@ def normal_equation(X, y):
     return np.linalg.pinv(X_aug.T @ X_aug) @ (X_aug.T @ y)
 
 
-# ---- data generation ----
+if __name__ == '__main__':
+    # ---- data generation ----
 
-np.random.seed(42)
-X_raw = 2 * np.random.rand(200, 1)
-# true relationship: y = 3 + 5x, with Gaussian noise on top
-y = 3 + 5 * X_raw[:, 0] + np.random.randn(200) * 0.8
+    np.random.seed(42)
+    X_raw = 2 * np.random.rand(200, 1)
+    # true relationship: y = 3 + 5x, with Gaussian noise on top
+    y = 3 + 5 * X_raw[:, 0] + np.random.randn(200) * 0.8
 
-split = 160
-X_train, X_test = X_raw[:split], X_raw[split:]
-y_train, y_test = y[:split], y[split:]
+    split = 160
+    X_train, X_test = X_raw[:split], X_raw[split:]
+    y_train, y_test = y[:split], y[split:]
 
-# ---- training ----
+    # ---- training ----
 
-print("Training via gradient descent...")
-model = LinearRegression(learning_rate=0.05, epochs=2000)
-model.fit(X_train, y_train)
+    print("Training via gradient descent...")
+    model = LinearRegression(learning_rate=0.05, epochs=2000)
+    model.fit(X_train, y_train)
 
-# one-shot closed-form solution
-ne_params = normal_equation(X_train, y_train)  # [bias, weight]
+    # one-shot closed-form solution
+    ne_params = normal_equation(X_train, y_train)  # [bias, weight]
 
-print(f"\nGradient descent  →  w = {model.w[0]:.4f},  b = {model.b:.4f}")
-print(f"Normal equation   →  w = {ne_params[1]:.4f},  b = {ne_params[0]:.4f}")
-print(f"True values       →  w = 5.0000,  b = 3.0000")
-print(f"\nTest MSE (gradient descent): {model.mse(X_test, y_test):.5f}")
+    print(f"\nGradient descent  →  w = {model.w[0]:.4f},  b = {model.b:.4f}")
+    print(f"Normal equation   →  w = {ne_params[1]:.4f},  b = {ne_params[0]:.4f}")
+    print(f"True values       →  w = 5.0000,  b = 3.0000")
+    print(f"\nTest MSE (gradient descent): {model.mse(X_test, y_test):.5f}")
 
-# ---- plots ----
+    # ---- plots ----
 
-os.makedirs('plots', exist_ok=True)
+    os.makedirs('plots', exist_ok=True)
 
-# 1. loss curve
-plt.figure(figsize=(8, 4))
-plt.plot(model.loss_history, color='steelblue', linewidth=1.5)
-plt.title('Training Loss Over Epochs')
-plt.xlabel('Epoch')
-plt.ylabel('MSE')
-plt.grid(True, linestyle='--', alpha=0.6)
-plt.tight_layout()
-plt.savefig(os.path.join('plots', 'loss_curve.png'), dpi=150)
-plt.show()
+    # 1. loss curve
+    plt.figure(figsize=(8, 4))
+    plt.plot(model.loss_history, color='steelblue', linewidth=1.5)
+    plt.title('Training Loss Over Epochs')
+    plt.xlabel('Epoch')
+    plt.ylabel('MSE')
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.tight_layout()
+    plt.savefig(os.path.join('plots', 'loss_curve.png'), dpi=150)
+    plt.show()
 
-# 2. regression fit comparison
-x_line = np.linspace(0, 2, 200).reshape(-1, 1)
-y_gd  = model.predict(x_line)
-y_ne  = ne_params[0] + ne_params[1] * x_line[:, 0]
-y_true_line = 3 + 5 * x_line[:, 0]
+    # 2. regression fit comparison
+    x_line = np.linspace(0, 2, 200).reshape(-1, 1)
+    y_gd  = model.predict(x_line)
+    y_ne  = ne_params[0] + ne_params[1] * x_line[:, 0]
+    y_true_line = 3 + 5 * x_line[:, 0]
 
-plt.figure(figsize=(9, 6))
-plt.scatter(X_train, y_train, alpha=0.4, color='steelblue', label='Train data', s=25)
-plt.scatter(X_test,  y_test,  alpha=0.5, color='coral',     label='Test data',  s=30, marker='x')
-plt.plot(x_line, y_gd,        'k-',  linewidth=2,   label='Gradient Descent')
-plt.plot(x_line, y_ne,        'r--', linewidth=2,   label='Normal Equation')
-plt.plot(x_line, y_true_line, 'g--', linewidth=1.5, label='True function', alpha=0.7)
-plt.title('Linear Regression — Gradient Descent vs Normal Equation')
-plt.xlabel('X')
-plt.ylabel('y')
-plt.legend()
-plt.grid(True, linestyle='--', alpha=0.6)
-plt.tight_layout()
-plt.savefig(os.path.join('plots', 'regression_fit.png'), dpi=150)
-plt.show()
+    plt.figure(figsize=(9, 6))
+    plt.scatter(X_train, y_train, alpha=0.4, color='steelblue', label='Train data', s=25)
+    plt.scatter(X_test,  y_test,  alpha=0.5, color='coral',     label='Test data',  s=30, marker='x')
+    plt.plot(x_line, y_gd,        'k-',  linewidth=2,   label='Gradient Descent')
+    plt.plot(x_line, y_ne,        'r--', linewidth=2,   label='Normal Equation')
+    plt.plot(x_line, y_true_line, 'g--', linewidth=1.5, label='True function', alpha=0.7)
+    plt.title('Linear Regression — Gradient Descent vs Normal Equation')
+    plt.xlabel('X')
+    plt.ylabel('y')
+    plt.legend()
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.tight_layout()
+    plt.savefig(os.path.join('plots', 'regression_fit.png'), dpi=150)
+    plt.show()

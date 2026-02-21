@@ -1,4 +1,4 @@
-import numpy as np
+﻿import numpy as np
 import matplotlib.pyplot as plt
 import os
 
@@ -51,9 +51,7 @@ char2idx = {c: i for i, c in enumerate(chars)}
 idx2char = {i: c for i, c in enumerate(chars)}
 data     = np.array([char2idx[c] for c in corpus], dtype=np.int32)
 
-print(f"Corpus length : {len(corpus)} characters")
-print(f"Vocabulary    : {vocab_size} unique characters")
-print(f"Characters    : {''.join(chars)}")
+# print corpus stats only when running directly (not when imported)
 
 
 # -----------------------------------------------------------------------
@@ -93,6 +91,13 @@ class RNNCell:
         # biases
         self.bh  = np.zeros(hidden_size)
         self.by  = np.zeros(output_size)
+
+        # Adagrad memory (sum of squared gradients)
+        self.mWxh = np.zeros_like(self.Wxh)
+        self.mWhh = np.zeros_like(self.Whh)
+        self.mWhy = np.zeros_like(self.Why)
+        self.mbh  = np.zeros_like(self.bh)
+        self.mby  = np.zeros_like(self.by)
 
     def forward(self, inputs, h_prev):
         """
@@ -164,25 +169,27 @@ class RNNCell:
         return dWxh, dWhh, dWhy, dbh, dby, loss / T, hs[T - 1]
 
     def update(self, dWxh, dWhh, dWhy, dbh, dby, lr):
-        self.Wxh -= lr * dWxh
-        self.Whh -= lr * dWhh
-        self.Why -= lr * dWhy
-        self.bh  -= lr * dbh
-        self.by  -= lr * dby
+        # Adagrad update: w -= (lr / sqrt(m + eps)) * dw
+        for param, grad, mem in [
+            (self.Wxh, dWxh, self.mWxh), (self.Whh, dWhh, self.mWhh),
+            (self.Why, dWhy, self.mWhy), (self.bh,  dbh,  self.mbh),
+            (self.by,  dby,  self.mby)
+        ]:
+            mem   += grad * grad
+            param -= lr * grad / np.sqrt(mem + 1e-7)
 
-    def sample(self, h, seed_idx, n_chars):
-        """Generate n_chars characters starting from seed_idx."""
+    def sample(self, h, seed_idx, n_chars, temp=1.0):
+        """Generate n_chars characters starting from seed_idx with temperature control."""
         x    = np.zeros(self.input_size)
         x[seed_idx] = 1
         generated = [seed_idx]
 
         for _ in range(n_chars):
             h = np.tanh(x @ self.Wxh + h @ self.Whh + self.bh)
-            y = h @ self.Why + self.by
+            y = (h @ self.Why + self.by) / max(temp, 1e-6)
             e = np.exp(y - y.max())
             p = e / e.sum()
-            # sample from the distribution rather than always taking argmax
-            # this gives more natural, varied text
+            
             idx = np.random.choice(self.output_size, p=p)
             x = np.zeros(self.input_size)
             x[idx] = 1
@@ -191,99 +198,82 @@ class RNNCell:
         return ''.join(idx2char[i] for i in generated)
 
 
-# -----------------------------------------------------------------------
-# Training
-# -----------------------------------------------------------------------
+if __name__ == '__main__':
+    print(f"Corpus length : {len(corpus)} characters")
+    print(f"Vocabulary    : {vocab_size} unique characters")
+    # -----------------------------------------------------------------------
+    # Training
+    # -----------------------------------------------------------------------
 
-HIDDEN_SIZE = 128
-SEQ_LEN     = 25    # characters per training chunk
-LR          = 1e-2
-N_ITER      = 3000
+    HIDDEN_SIZE = 128
+    SEQ_LEN     = 25    # characters per training chunk
+    LR          = 1e-2
+    N_ITER      = 3000
 
-rnn = RNNCell(input_size=vocab_size, hidden_size=HIDDEN_SIZE, output_size=vocab_size)
+    rnn = RNNCell(input_size=vocab_size, hidden_size=HIDDEN_SIZE, output_size=vocab_size)
 
-loss_history = []
-smooth_loss  = -np.log(1.0 / vocab_size) * SEQ_LEN  # initial expected loss (random)
-h_prev       = np.zeros(HIDDEN_SIZE)
-pointer      = 0
+    loss_history = []
+    smooth_loss  = -np.log(1.0 / vocab_size) * SEQ_LEN
+    h_prev       = np.zeros(HIDDEN_SIZE)
+    pointer      = 0
 
-print(f"\nTraining RNN (hidden={HIDDEN_SIZE}, seq_len={SEQ_LEN}, lr={LR})...\n")
+    print(f"\nTraining RNN (hidden={HIDDEN_SIZE}, seq_len={SEQ_LEN}, lr={LR})...\n")
 
-for i in range(N_ITER):
-    # wrap around the corpus
-    if pointer + SEQ_LEN + 1 >= len(data):
-        pointer = 0
-        h_prev  = np.zeros(HIDDEN_SIZE)
+    for i in range(N_ITER):
+        if pointer + SEQ_LEN + 1 >= len(data):
+            pointer = 0
+            h_prev  = np.zeros(HIDDEN_SIZE)
 
-    inputs_idx  = data[pointer:pointer + SEQ_LEN]
-    targets_idx = data[pointer + 1:pointer + SEQ_LEN + 1]
+        inputs_idx  = data[pointer:pointer + SEQ_LEN]
+        targets_idx = data[pointer + 1:pointer + SEQ_LEN + 1]
+        xs = one_hot(inputs_idx, vocab_size)
 
-    xs = one_hot(inputs_idx, vocab_size)
+        xs_list, hs, ys, ps = rnn.forward(xs, h_prev)
+        dWxh, dWhh, dWhy, dbh, dby, loss, h_prev = rnn.backward(xs, hs, ps, targets_idx)
+        rnn.update(dWxh, dWhh, dWhy, dbh, dby, lr=LR)
 
-    # forward
-    xs_list, hs, ys, ps = rnn.forward(xs, h_prev)
+        smooth_loss = 0.999 * smooth_loss + 0.001 * loss * SEQ_LEN
+        pointer += SEQ_LEN
 
-    # backward
-    dWxh, dWhh, dWhy, dbh, dby, loss, h_prev = rnn.backward(xs, hs, ps, targets_idx)
+        if i % 200 == 0:
+            sample_text = rnn.sample(h_prev, inputs_idx[0], 100)
+            print(f"iter {i:5d} | loss = {smooth_loss:.4f}")
+            print(f"  Sample: {repr(sample_text)}\n")
+            loss_history.append((i, smooth_loss))
 
-    # Adagrad-style update (simple, stable for RNNs)
-    rnn.update(dWxh, dWhh, dWhy, dbh, dby, lr=LR)
+    print("\n--- Final Generated Text (200 chars) ---")
+    seed      = data[0]
+    generated = rnn.sample(np.zeros(HIDDEN_SIZE), seed, 200)
+    print(generated)
 
-    smooth_loss = 0.999 * smooth_loss + 0.001 * loss * SEQ_LEN
-    pointer += SEQ_LEN
+    os.makedirs('plots', exist_ok=True)
 
-    if i % 200 == 0:
-        sample_text = rnn.sample(h_prev, inputs_idx[0], 100)
-        print(f"iter {i:5d} | loss = {smooth_loss:.4f}")
-        print(f"  Sample: {repr(sample_text)}\n")
-        loss_history.append((i, smooth_loss))
+    iters  = [h[0] for h in loss_history]
+    losses = [h[1] for h in loss_history]
 
-# -----------------------------------------------------------------------
-# Final generation
-# -----------------------------------------------------------------------
+    plt.figure(figsize=(9, 5))
+    plt.plot(iters, losses, color='steelblue', linewidth=1.8)
+    plt.title('RNN Training Loss (smoothed cross-entropy)')
+    plt.xlabel('Iteration'); plt.ylabel('Smoothed Loss')
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.tight_layout()
+    plt.savefig(os.path.join('plots', 'loss_curve.png'), dpi=150)
+    plt.show()
 
-print("\n--- Final Generated Text (200 chars) ---")
-seed = data[0]
-generated = rnn.sample(np.zeros(HIDDEN_SIZE), seed, 200)
-print(generated)
+    print("\nVisualizing hidden state activations...")
+    h = np.zeros(HIDDEN_SIZE); hidden_states = []
+    for ci in data[:200]:
+        xv = np.zeros(vocab_size); xv[ci] = 1
+        h  = np.tanh(xv @ rnn.Wxh + h @ rnn.Whh + rnn.bh)
+        hidden_states.append(h[:32])
+    H_mat = np.array(hidden_states).T
 
-# -----------------------------------------------------------------------
-# Plots
-# -----------------------------------------------------------------------
+    plt.figure(figsize=(14, 5))
+    plt.imshow(H_mat, aspect='auto', cmap='RdBu', vmin=-1, vmax=1)
+    plt.colorbar(label='tanh activation')
+    plt.title('Hidden State Activations (first 32 units, first 200 chars of corpus)')
+    plt.xlabel('Character position'); plt.ylabel('Hidden unit')
+    plt.tight_layout()
+    plt.savefig(os.path.join('plots', 'hidden_activations.png'), dpi=150)
+    plt.show()
 
-os.makedirs('plots', exist_ok=True)
-
-iters  = [h[0] for h in loss_history]
-losses = [h[1] for h in loss_history]
-
-plt.figure(figsize=(9, 5))
-plt.plot(iters, losses, color='steelblue', linewidth=1.8)
-plt.title('RNN Training Loss (smoothed cross-entropy)')
-plt.xlabel('Iteration')
-plt.ylabel('Smoothed Loss')
-plt.grid(True, linestyle='--', alpha=0.6)
-plt.tight_layout()
-plt.savefig(os.path.join('plots', 'loss_curve.png'), dpi=150)
-plt.show()
-
-# visualize hidden state activations on the corpus
-print("\nVisualizing hidden state activations...")
-h = np.zeros(HIDDEN_SIZE)
-hidden_states = []
-for idx in data[:200]:
-    x     = np.zeros(vocab_size)
-    x[idx] = 1
-    h = np.tanh(x @ rnn.Wxh + h @ rnn.Whh + rnn.bh)
-    hidden_states.append(h[:32])   # first 32 units
-
-H_mat = np.array(hidden_states).T  # (32, 200)
-
-plt.figure(figsize=(14, 5))
-plt.imshow(H_mat, aspect='auto', cmap='RdBu', vmin=-1, vmax=1)
-plt.colorbar(label='tanh activation')
-plt.title('Hidden State Activations (first 32 units, first 200 chars of corpus)')
-plt.xlabel('Character position')
-plt.ylabel('Hidden unit')
-plt.tight_layout()
-plt.savefig(os.path.join('plots', 'hidden_activations.png'), dpi=150)
-plt.show()
