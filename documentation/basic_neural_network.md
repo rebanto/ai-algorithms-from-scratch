@@ -1,20 +1,18 @@
-# Simple Neural Network Implementation
+# The Original Neural Network
 
-This repository contains a basic implementation of a two-layer neural network for binary classification, leveraging NumPy for numerical operations and scikit-learn for synthetic dataset generation.
+This was my very first attempt at building a neural network "for real." I started here before moving on to the more complex CNNs and RNNs. It's a simple two-layer MLP (Multi-Layer Perceptron), but it's enough to learn the non-linear "moons" dataset, which a basic linear model just can't handle.
 
-## Overview
+Building this taught me that a neural network is really just a bunch of matrix multiplications stacked together, separated by some "rules" (activation functions) that keep it from just collapsing back into a simple linear equation.
 
-This implementation provides the fundamental building blocks of a neural network:
+## What's Inside?
 
--   **`Dense` Layer:** A fully connected linear layer performing the affine transformation: $\text{output} = \text{input} \cdot \text{weights} + \text{biases}$.
--   **`ReLU` Activation:** The Rectified Linear Unit activation function, defined as $\text{output} = \max(0, \text{input})$.
--   **`Sigmoid` Activation:** The sigmoid activation function, $\text{output} = \frac{1}{1 + e^{-\text{input}}}$. Commonly used in binary classification for outputting probabilities between 0 and 1.
--   **`BinaryCrossentropy` Loss:** The loss function for binary classification, measuring the discrepancy between predicted probabilities and true binary labels:
-    $$L = -\frac{1}{N} \sum_{i=1}^{N} [y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i)]$$
-    where $y_i$ represents the true label and $\hat{y}_i$ is the predicted probability.
--   **`SGD` Optimizer:** The Stochastic Gradient Descent optimizer, a basic optimization algorithm that iteratively updates the network's weights and biases based on the gradient of the loss function.
+I broke the network down into modular pieces so I could swap them around later:
 
-The script demonstrates the practical application of these components by training a simple two-layer neural network on the `make_moons` dataset from scikit-learn, a benchmark dataset for non-linear binary classification.
+- **`Dense` Layer**: The workhorse. It just does $Y = XW + B$. The "weights" are what the network actually learns.
+- **`ReLU` (Rectified Linear Unit)**: My favorite activation function because it's so simple ($\text{max}(0, x)$) but it's the reason we can learn non-linear patterns.
+- **`Sigmoid`**: Squashes any number down to between 0 and 1. Perfect for the final output when you just want a probability.
+- **`BinaryCrossentropy`**: The loss function. It's basically a way to shout at the network: "You were 90% sure this was a 1, but it was actually a 0! That's a huge error!" 
+- **`SGD` (Stochastic Gradient Descent)**: The optimizer that actually does the work of nudging the weights in the right direction after every batch.
 
 ## Getting Started
 

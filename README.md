@@ -1,62 +1,55 @@
-# AI From Scratch — NumPy Implementations
+# AI From Scratch (NumPy Edition)
 
-A collection of core machine learning and deep learning algorithms implemented entirely from scratch using **NumPy**. This project aims to demonstrate the mathematical foundations of AI without the "magic" of high-level frameworks.
+I wanted to see how these algorithms actually work under the hood. No TensorFlow, no PyTube, no "magic" libraries—just raw **NumPy** and the math I (mostly) learned in school.
 
-## 🚀 Getting Started
+Most ML tutorials just tell you to import a library and call `.fit()`, which feels like cheating. This project is my attempt to build the "engines" from scratch: implementing the gradients, the backprop, and the decision logic from the ground up.
 
-The project features a master runner script that coordinates all implementations.
+## Check it Out (The Master Runner)
 
-### Interactive Mode
-Launch the interactive menu to pick algorithms and see live Matplotlib visualizations:
+I built a cool interactive script to show everything off. You can pick an algorithm, watch it train, and see the graphs pop up in real-time.
+
 ```bash
+# Start the interactive menu
 python run_all.py
 ```
 
-### CLI Mode
-Run specific algorithms (or all) directly from the command line:
+If you're in a hurry and just want to run one thing from the terminal:
 ```bash
-python run_all.py linear cnn    # runs specific algorithms
-python run_all.py rnn           # runs the character-level RNN
+python run_all.py linear cnn    # runs specific ones
+python run_all.py rnn           # runs the Hamlet text generator
 ```
 
 ---
 
-## 📚 Algorithm Documentation
+## The "Under the Hood" Stuff
 
-All detailed math and implementation explanations have been consolidated into the [documentation/](documentation/) directory:
+I wrote down the math and the "why" for each algorithm. If you want to see the derivatives or how the convolution stride tricks work, check these out:
 
-- [1. Linear Regression](documentation/linear_regression.md)
-- [2. Logistic Regression](documentation/logistic_regression.md)
-- [3. K-Nearest Neighbors](documentation/knn.md)
-- [4. Gaussian Naive Bayes](documentation/naive_bayes.md)
-- [5. Convolutional Neural Network](documentation/cnn.md)
-- [6. Recurrent Neural Network](documentation/rnn.md)
-- [7. Basic Neural Network](documentation/basic_neural_network.md) (Multi-layer Perceptron)
-
----
-
-## 🎨 Visualizations
-
-The runner script generates rich plots for every algorithm, stored in the `plots/` directory:
-- **3D Loss Surfaces**: Visualize the convex optimization landscape.
-- **Decision Boundaries**: See how models separate different classes.
-- **Saliency Maps**: View which pixels a CNN focuses on for digit recognition.
-- **Activation Heatmaps**: Peek into an RNN's internal memory during text generation.
+- [1. Linear Regression](documentation/linear_regression.md) (The OG "line fitting")
+- [2. Logistic Regression](documentation/logistic_regression.md) (Neural networks... but simplified)
+- [3. K-Nearest Neighbors](documentation/knn.md) (The absolute simplest way to classify)
+- [4. Gaussian Naive Bayes](documentation/naive_bayes.md) (Probability is powerful)
+- [5. Convolutional Neural Network](documentation/cnn.md) (OCR on MNIST digits)
+- [6. Recurrent Neural Network](documentation/rnn.md) (Predicting the next character)
+- [7. Basic Neural Network](documentation/basic_neural_network.md) (Where it all started)
 
 ---
 
-## 📁 Repository Structure
+## Visualizing the Math
+
+I spent a lot of time on the plots because seeing the math is way better than just looking at loss numbers:
+- **3D Loss Bowls**: Watch the gradient descent fall down the convex surface.
+- **Saliency Maps**: See exactly which pixels the CNN thinks are important.
+- **Hidden State Heatmaps**: Peek into how the RNN's "brain" remembers characters.
+
+---
+
+## The Setup
 
 ```
 .
-├── documentation/       # Centralized math & theory docs
-├── plots/               # Generated visualizations
-├── Linear_Regression_From_Scratch/
-├── Logistic_Regression_From_Scratch/
-├── KNN_From_Scratch/
-├── Naive_Bayes_From_Scratch/
-├── CNN_From_Scratch/
-├── RNN_From_Scratch/
-├── Basic_Neural_Network_From_Scratch/
-└── run_all.py           # Master interactive runner
+├── documentation/       # Where I explain all the math
+├── plots/               # All the generated graphs
+├── run_all.py           # The main entry point
+└── [Algos]_From_Scratch/ # The actual source code
 ```
