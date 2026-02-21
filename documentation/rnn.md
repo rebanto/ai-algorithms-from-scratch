@@ -21,30 +21,19 @@ The same weight matrices $W_{xh}$, $W_{hh}$, $W_{hy}$ are shared across *every* 
 
 ## Backpropagation Through Time (BPTT)
 
-This is where it gets interesting. To compute gradients, you unroll the computation graph across all $T$ time steps and apply the chain rule backwards through the whole sequence. At each step $t$, the gradient of the loss flows back through:
-1. The output projection ($W_{hy}$)
-2. The tanh nonlinearity
-3. Into the previous hidden state (via $W_{hh}$)
+This is where the bookkeeping gets wild. To compute gradients, you have to "unroll" the whole sequence and pass the error back through every single time step. 
 
-The gradient that reaches hidden state $h_{t-1}$ carries information from all future time steps.
-
-In code this looks like walking backwards through $t = T-1, T-2, \ldots, 0$ and accumulating:
+Think of it like replaying a tape and correcting mistakes at every frame. The gradient at any step $t$ doesn't just care about that step—it carries information from all the *future* steps it contributed to. In code, I walk backwards from the end of the sequence to the beginning, accumulating the error as I go:
 
 $$
 \delta_t = \frac{\partial L}{\partial y_t} W_{hy}^T + \delta_{t+1} W_{hh}^T, \qquad \text{tanh backprop: } (1 - h_t^2) \odot \delta_t
 $$
 
-## Gradient Clipping
+## The Exploding Gradient Problem
 
-Vanilla RNNs famously suffer from **exploding gradients**. When you multiply the recurrent weight matrix by itself $T$ times (during BPTT), the gradient can grow exponentially. Without clipping, the weights blow up after just a few batches.
+Vanilla RNNs have a famous math problem: if you multiply a number by itself 25 times, it either disappears or grows into a monster. When calculating gradients over long sequences, they can "explode" and turn into `NaN` in an instant.
 
-The fix: just clip all gradients to $[-c, c]$ before applying them. It's blunt but it works:
-
-```python
-np.clip(grad, -5.0, 5.0, out=grad)
-```
-
-(Vanishing gradients — where the gradient shrinks to zero over long sequences — are a different and harder problem, which is why LSTMs were invented. This implementation is a vanilla RNN, so it really only "remembers" the last ~20-30 characters reliably.)
+The fix is "Gradient Clipping"—it sounds fancy, but it just means "if the gradient is bigger than 5, force it to be 5." It’s a simple safety valve that keeps the training stable.
 
 ## Character-Level Language Modeling
 

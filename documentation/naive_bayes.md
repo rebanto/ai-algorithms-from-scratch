@@ -1,6 +1,8 @@
 # Gaussian Naive Bayes From Scratch
 
-Naive Bayes was one of those algorithms I thought would be straightforward, and it mostly was — except for the probability underflow issue that I ran into immediately. Multiplying together 50 small probabilities gives you a number so tiny that floating point just rounds it to zero. The fix is to work in log space, which turns products into sums. Seems obvious in retrospect.
+Naive Bayes was one of those algorithms I thought would be a breeze, but it actually taught me a lot about numerical stability. I immediately ran into the "probability underflow" issue: when you multiply dozens of small probabilities together, the number gets so small that Python just rounds it to zero. 
+
+The fix? Convert everything to log-space. It turns products into sums and keeps the math stable. This was a great "real-world" engineering lesson.
 
 The "naive" part refers to an assumption the model makes: it treats every feature as **conditionally independent** given the class. That means it factors the joint probability as:
 

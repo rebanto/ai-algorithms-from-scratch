@@ -22,33 +22,15 @@ Slide this window across the entire image for every filter. The resulting output
 
 For a 28×28 input with 8 filters of size 3×3, the output is 8 feature maps each of size 26×26.
 
-## Forward Pass (the trick)
+## Forward Pass (The Speed Trick)
 
-Doing this with 4 nested Python loops works but runs in minutes. The smarter way is to extract all the patches from the image matrix in one shot using `numpy.lib.stride_tricks.as_strided`. This creates a view of shape `(batch, out_H, out_W, fs, fs)` — every patch we'll ever need — without copying any data. Then a single `np.einsum` computes all the dot products at once:
+Doing this with 4 nested Python loops works, but it’s painfully slow (like "take a coffee break" slow). The smarter way is to extract all the small patches from the image matrix in one shot. 
 
-```python
-# patches: (batch, out_H, out_W, fs, fs)
-# filters: (num_filters, fs, fs)
-output = np.einsum('bhwij,fij->bfhw', patches, filters)
-```
+I used `numpy.lib.stride_tricks.as_strided`, which creates a "view" of all the patches we need without actually copying any data in memory. Then, a single `np.einsum` (Einstein summation) computes all the dot products for every filter at once. It’s basically a super-optimized matrix multiplication that handles the sliding window for us.
 
-That's the entire forward pass for the conv layer. Clean.
+## Backward Pass (Passing the Error Back)
 
-## Backward Pass (gradient w.r.t. filters and inputs)
-
-The gradient with respect to the **filters** is the cross-correlation of the input patches with the upstream gradient:
-
-```python
-dfilters = np.einsum('bhwij,bfhw->fij', patches, d_out)
-```
-
-The gradient with respect to the **input** is trickier. Each input position contributes to multiple output positions. You need to "scatter" the upstream gradients back through the filters. I loop over output positions here (just $26 \times 26 = 676$ iterations, which is fine) and accumulate:
-
-```python
-for i in range(out_H):
-    for j in range(out_W):
-        dinputs[:, i:i+fs, j:j+fs] += einsum('bf,fij->bij', d_out[:, :, i, j], filters)
-```
+The gradient with respect to the **filters** is basically just looking at which parts of the input caused the error. The gradient with respect to the **input** is a bit trickier because each pixel contributes to multiple overlapping windows. I had to "scatter" the errors back through the filters to figure out where they came from.
 
 ## Max Pooling
 
@@ -66,15 +48,17 @@ Input (28×28)
   → Dense (128 → 10) → Softmax
 ```
 
-## Optimizer
+## Optimizer: Why Adam?
 
-I used **Adam** instead of plain SGD. Adam adapts the learning rate per parameter using running estimates of the gradient and its square (first and second moments). In practice it converges much faster and is much less sensitive to the choice of learning rate.
+I used the **Adam** optimizer instead of basic SGD. Adam is like SGD but with an "internal memory." It keeps track of the average of the gradients (momentum) and the average of the squared gradients (to scale the learning rate).
+
+Basically, if a weight is changing a lot, Adam slows it down. If it's barely moving, Adam gives it a nudge. It’s much more stable and let me use a higher learning rate without the model exploding.
 
 $$
 m_t = \beta_1 m_{t-1} + (1-\beta_1) g_t, \qquad v_t = \beta_2 v_{t-1} + (1-\beta_2) g_t^2
 $$
 $$
-\hat{m} = \frac{m_t}{1-\beta_1^t}, \qquad \hat{v} = \frac{v_t}{1-\beta_2^t}, \qquad w \leftarrow w - \alpha \frac{\hat{m}}{\sqrt{\hat{v}} + \epsilon}
+w \leftarrow w - \alpha \frac{\hat{m}}{\sqrt{\hat{v}} + \epsilon}
 $$
 
 ## Results

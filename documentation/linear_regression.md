@@ -32,41 +32,35 @@ Then update: $w \leftarrow w - \alpha \cdot \frac{\partial L}{\partial w}$, wher
 
 This is the same update rule that every neural network uses. It's just much easier to see here because there's only one layer.
 
-### 2. Normal Equation (Closed-Form)
+### 2. Normal Equation (The "Got it in One" Method)
 
-If you take the gradient of $L$ and set it equal to zero, you can actually solve for the exact optimal $w$ analytically:
+If you're willing to do a bit of matrix algebra, you can actually solve for the exact optimal $w$ in a single shot without any training:
 
 $$
 w^* = (X^T X)^{-1} X^T y
 $$
 
-This gives the exact answer in a single matrix operation. No iteration, no learning rate to tune. The catch is that matrix inversion is $O(d^3)$ — it becomes completely impractical when you have thousands of features. Gradient descent scales much better.
+This is the "closed-form" solution. It's incredibly satisfying because it gives the exact answer with no iteration or learning rate to tune. But there's a huge catch: matrix inversion is $O(d^3)$. If you have 10,000 features, this will practically melt your CPU. That's why we still use gradient descent—it scales properly to the big stuff.
 
-I implemented both and compared them. They converge to essentially the same values, which is a good sanity check.
+I implemented both just to see if they'd agree. They converged to nearly identical values, which was a great "Aha!" moment.
 
 ## What I Built
 
-```
+I wrote a simple class to handle the heavy lifting:
+```python
 LinearRegression
-├── fit(X, y)          # runs gradient descent
-├── predict(X)         # y_pred = X @ w + b
-└── mse(X, y)          # evaluate mean squared error
-
-normal_equation(X, y)  # standalone function for the closed-form solution
+├── fit(X, y)          # the main loop for gradient descent
+├── predict(X)         # simple y_pred = X @ w + b
+└── mse(X, y)          # how we evaluate performance (MSE)
 ```
 
-The training data is $y = 3 + 5x + \epsilon$ (Gaussian noise), so I know the true answer. After training, gradient descent recovers $w \approx 5$ and $b \approx 3$, which is satisfying.
+The training data I used is $y = 3 + 5x + \epsilon$ (the $\epsilon$ is just a bit of noise). After training, the model recovered $w \approx 5$ and $b \approx 3$. 
 
-## Visualizations
+## What I Learned
 
-- **`plots/loss_curve.png`** — MSE dropping over epochs. Should be a smooth curve downward; if it's oscillating, the learning rate is too high.
-- **`plots/regression_fit.png`** — Scatter plot of data with three lines overlaid: gradient descent fit, normal equation fit, and the true function. They're basically identical, which is the point.
+The coolest thing about linear regression is that the "loss surface" is a perfect convex bowl. There's only one bottom (global minimum) and no trap doors (local minima). This is why it always works—you just fall down the hill until you hit the bottom. 
 
-## What Surprised Me
-
-The loss surface for linear regression is a perfect convex bowl — there's only one global minimum and no local minima. This is why gradient descent *always* converges here, regardless of where you start. That's a luxury that disappears the moment you add a nonlinear activation function.
-
-Also, the normal equation involving $X^T X$ is just the **covariance matrix** of the features. I didn't notice that at first but it makes the linear algebra feel much more meaningful.
+Also, it turns out that $X^T X$ in the normal equation is basically the **covariance matrix** of the features. I didn't realize at first that the "shortcut" solution was connected to statistics like that, but it makes the linear algebra feel a lot more grounded.
 
 ## Running It
 

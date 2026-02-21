@@ -6,13 +6,13 @@ Building this was about modularity: taking the matrix multiplications and activa
 
 ## What's Inside?
 
-I broke the network down into modular pieces so I could swap them around later:
+I broke the network down into modular pieces so I could swap them around later. It’s like building with LEGO bricks - each one has a specific job:
 
-- **`Dense` Layer**: The workhorse. It just does $Y = XW + B$. The "weights" are what the network actually learns.
-- **`ReLU` (Rectified Linear Unit)**: My favorite activation function because it's so simple ($\text{max}(0, x)$) but it's the reason we can learn non-linear patterns.
-- **`Sigmoid`**: Squashes any number down to between 0 and 1. Perfect for the final output when you just want a probability.
-- **`BinaryCrossentropy`**: The loss function. It's basically a way to shout at the network: "You were 90% sure this was a 1, but it was actually a 0! That's a huge error!" 
-- **`SGD` (Stochastic Gradient Descent)**: The optimizer that actually does the work of nudging the weights in the right direction after every batch.
+- **`Dense` Layer**: The workhorse. It handles the linear transformations ($Y = XW + B$). This is where the actual "learning" happens as the weights get updated.
+- **`ReLU` (Rectified Linear Unit)**: My favorite activation function because it's so simple—it literally just zeros out negative numbers ($\text{max}(0, x)$). But without it, the whole network would just collapse into a single linear equation.
+- **`Sigmoid`**: This squashes any number down to between 0 and 1. It’s perfect for the final output when we just want a probability.
+- **`BinaryCrossentropy`**: The loss function. It’s a way to measure the error; it punishes the network heavily if it’s "confidently wrong."
+- **`SGD` (Stochastic Gradient Descent)**: The engine that actually updates the weights. It calculates the gradients and nudges everything in the "downhill" direction.
 
 ## Getting Started
 
