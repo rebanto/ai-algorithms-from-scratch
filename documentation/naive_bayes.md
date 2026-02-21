@@ -4,7 +4,9 @@ Naive Bayes was one of those algorithms I thought would be straightforward, and 
 
 The "naive" part refers to an assumption the model makes: it treats every feature as **conditionally independent** given the class. That means it factors the joint probability as:
 
-$$P(x_1, x_2, \ldots, x_d \mid c) = \prod_{j=1}^{d} P(x_j \mid c)$$
+$$
+P(x_1, x_2, \ldots, x_d \mid c) = \prod_{j=1}^{d} P(x_j \mid c)
+$$
 
 This is almost never actually true. Features are correlated. But the model works anyway, often surprisingly well, because even a wrong independence assumption can still put you in the right ballpark.
 
@@ -12,18 +14,24 @@ This is almost never actually true. Features are correlated. But the model works
 
 The whole algorithm follows directly from Bayes' theorem:
 
-$$P(c \mid x) = \frac{P(x \mid c) \cdot P(c)}{P(x)}$$
+$$
+P(c \mid x) = \frac{P(x \mid c) \cdot P(c)}{P(x)}
+$$
 
 We want the class $c$ that maximizes $P(c \mid x)$. Since $P(x)$ is constant across all classes, we just need to maximize the numerator:
 
-$$\hat{c} = \arg\max_c \; P(c) \cdot P(x \mid c)$$
+$$
+\hat{c} = \arg\max_c \; P(c) \cdot P(x \mid c)
+$$
 
 - $P(c)$ is the **prior** — just the fraction of training examples in class $c$
 - $P(x \mid c)$ is the **likelihood** — how probable is this input given the class
 
 For the Gaussian version, we assume features within each class follow a normal distribution:
 
-$$P(x_j \mid c) = \frac{1}{\sqrt{2\pi\sigma_{jc}^2}} \exp\!\left(-\frac{(x_j - \mu_{jc})^2}{2\sigma_{jc}^2}\right)$$
+$$
+P(x_j \mid c) = \frac{1}{\sqrt{2\pi\sigma_{jc}^2}} \exp\!\left(-\frac{(x_j - \mu_{jc})^2}{2\sigma_{jc}^2}\right)
+$$
 
 So "training" just means computing $\mu_{jc}$ (mean) and $\sigma_{jc}^2$ (variance) for each feature $j$ and class $c$. That's just two passes over the data.
 
@@ -31,7 +39,9 @@ So "training" just means computing $\mu_{jc}$ (mean) and $\sigma_{jc}^2$ (varian
 
 Since we're multiplying many probabilities, convert everything to logs. Products become sums:
 
-$$\log P(c \mid x) \propto \log P(c) + \sum_{j=1}^{d} \log P(x_j \mid c)$$
+$$
+\log P(c \mid x) \propto \log P(c) + \sum_{j=1}^{d} \log P(x_j \mid c)
+$$
 
 This avoids underflow and is also faster because addition is cheaper than multiplication.
 
@@ -40,7 +50,7 @@ This avoids underflow and is also faster because addition is cheaper than multip
 ```
 GaussianNaiveBayes
 ├── fit(X, y)              # compute priors, means, variances per class
-├── _log_gaussian(x, μ, σ²) # log PDF of Gaussian
+├── _log_gaussian(x, mu, var) # log PDF of Gaussian
 ├── _log_posterior(x, c)   # log P(c) + Σ log P(x_j | c)
 ├── predict(X)             # argmax over log posteriors
 ├── predict_proba(X)       # softmax of log posteriors -> actual probabilities

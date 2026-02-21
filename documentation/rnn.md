@@ -8,8 +8,12 @@ I trained a character-level RNN on a slice of Hamlet. The task: given all the ch
 
 At each time step $t$, the RNN takes the current input $x_t$ and the previous hidden state $h_{t-1}$, and produces a new hidden state $h_t$ and an output $y_t$:
 
-$$h_t = \tanh(W_{xh} x_t + W_{hh} h_{t-1} + b_h)$$
-$$y_t = W_{hy} h_t + b_y$$
+$$
+h_t = \tanh(W_{xh} x_t + W_{hh} h_{t-1} + b_h)
+$$
+$$
+y_t = W_{hy} h_t + b_y
+$$
 
 Then softmax over $y_t$ gives probabilities over the vocabulary.
 
@@ -26,7 +30,9 @@ The gradient that reaches hidden state $h_{t-1}$ carries information from all fu
 
 In code this looks like walking backwards through $t = T-1, T-2, \ldots, 0$ and accumulating:
 
-$$\delta_t = \frac{\partial L}{\partial y_t} W_{hy}^T + \delta_{t+1} W_{hh}^T, \qquad \text{tanh backprop: } (1 - h_t^2) \odot \delta_t$$
+$$
+\delta_t = \frac{\partial L}{\partial y_t} W_{hy}^T + \delta_{t+1} W_{hh}^T, \qquad \text{tanh backprop: } (1 - h_t^2) \odot \delta_t
+$$
 
 ## Gradient Clipping
 

@@ -14,7 +14,9 @@ It sounds almost too naive. But it works — and more importantly, understanding
 3. Take a majority vote among their labels
 4. Return the winning label
 
-$$d(x, x_i) = \sqrt{\sum_{j=1}^{d} (x_j - x_{ij})^2}$$
+$$
+d(x, x_i) = \sqrt{\sum_{j=1}^{d} (x_j - x_{ij})^2}
+$$
 
 For "probabilities," I use the fraction of the K neighbors that belong to class 1. It's not a real probability in any rigorous sense, but it's smooth and useful for plotting decision boundaries.
 

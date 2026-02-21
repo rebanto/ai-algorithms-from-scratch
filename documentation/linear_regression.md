@@ -6,11 +6,15 @@ This was probably the first "real" ML algorithm I implemented and honestly it ga
 
 Given a dataset of input-output pairs $(x_i, y_i)$, we want to find weights $w$ and bias $b$ such that:
 
-$$\hat{y} = Xw + b$$
+$$
+\hat{y} = Xw + b
+$$
 
 is as close to $y$ as possible. "Close" is measured by **mean squared error**:
 
-$$L = \frac{1}{n} \sum_{i=1}^{n} (\hat{y}_i - y_i)^2$$
+$$
+L = \frac{1}{n} \sum_{i=1}^{n} (\hat{y}_i - y_i)^2
+$$
 
 The goal is to minimize $L$ by adjusting $w$ and $b$.
 
@@ -20,7 +24,9 @@ The goal is to minimize $L$ by adjusting $w$ and $b$.
 
 Take the derivative of $L$ with respect to $w$ and $b$, then repeatedly move in the opposite direction of the gradient. The gradients are:
 
-$$\frac{\partial L}{\partial w} = \frac{2}{n} X^T (\hat{y} - y), \qquad \frac{\partial L}{\partial b} = \frac{2}{n} \sum(\hat{y} - y)$$
+$$
+\frac{\partial L}{\partial w} = \frac{2}{n} X^T (\hat{y} - y), \qquad \frac{\partial L}{\partial b} = \frac{2}{n} \sum(\hat{y} - y)
+$$
 
 Then update: $w \leftarrow w - \alpha \cdot \frac{\partial L}{\partial w}$, where $\alpha$ is the learning rate.
 
@@ -30,7 +36,9 @@ This is the same update rule that every neural network uses. It's just much easi
 
 If you take the gradient of $L$ and set it equal to zero, you can actually solve for the exact optimal $w$ analytically:
 
-$$w^* = (X^T X)^{-1} X^T y$$
+$$
+w^* = (X^T X)^{-1} X^T y
+$$
 
 This gives the exact answer in a single matrix operation. No iteration, no learning rate to tune. The catch is that matrix inversion is $O(d^3)$ — it becomes completely impractical when you have thousands of features. Gradient descent scales much better.
 

@@ -14,7 +14,9 @@ A conv layer fixes this by applying the same filter pattern at every position. I
 
 A convolutional layer has $F$ filters of size $k \times k$. For each filter and each spatial position $(i, j)$ in the input:
 
-$$\text{output}[f, i, j] = \sum_{m=0}^{k-1} \sum_{n=0}^{k-1} \text{input}[i+m, j+n] \cdot \text{filter}[f, m, n] + b_f$$
+$$
+\text{output}[f, i, j] = \sum_{m=0}^{k-1} \sum_{n=0}^{k-1} \text{input}[i+m, j+n] \cdot \text{filter}[f, m, n] + b_f
+$$
 
 Slide this window across the entire image for every filter. The resulting output is called a **feature map**.
 
@@ -68,8 +70,12 @@ Input (28×28)
 
 I used **Adam** instead of plain SGD. Adam adapts the learning rate per parameter using running estimates of the gradient and its square (first and second moments). In practice it converges much faster and is much less sensitive to the choice of learning rate.
 
-$$m_t = \beta_1 m_{t-1} + (1-\beta_1) g_t, \qquad v_t = \beta_2 v_{t-1} + (1-\beta_2) g_t^2$$
-$$\hat{m} = \frac{m_t}{1-\beta_1^t}, \qquad \hat{v} = \frac{v_t}{1-\beta_2^t}, \qquad w \leftarrow w - \alpha \frac{\hat{m}}{\sqrt{\hat{v}} + \epsilon}$$
+$$
+m_t = \beta_1 m_{t-1} + (1-\beta_1) g_t, \qquad v_t = \beta_2 v_{t-1} + (1-\beta_2) g_t^2
+$$
+$$
+\hat{m} = \frac{m_t}{1-\beta_1^t}, \qquad \hat{v} = \frac{v_t}{1-\beta_2^t}, \qquad w \leftarrow w - \alpha \frac{\hat{m}}{\sqrt{\hat{v}} + \epsilon}
+$$
 
 ## Results
 
