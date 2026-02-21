@@ -6,17 +6,17 @@ It sounds almost too naive. But it works — and more importantly, understanding
 
 ## The Algorithm
 
-**Training:** Just store $(X_{train}, y_{train})$. That's it.
+KNN is a "lazy" learner—it doesn't actually learn a model during training.
 
+**Training:** Just store $(X_{train}, y_{train})$. That’s it.
 **Prediction for a new point $x$:**
-1. Compute the Euclidean distance from $x$ to every training point: $d_i = \|x - x_i\|_2$
-2. Find the K points with smallest distance
-3. Take a majority vote among their labels
-4. Return the winning label
-
+1. Compute the Euclidean distance from $x$ to every training point:
 $$
 d(x, x_i) = \sqrt{\sum_{j=1}^{d} (x_j - x_{ij})^2}
 $$
+2. Find the $K$ points with the smallest distances.
+3. Take a majority vote among their labels.
+4. Return the winner.
 
 For "probabilities," I use the fraction of the K neighbors that belong to class 1. It's not a real probability in any rigorous sense, but it's smooth and useful for plotting decision boundaries.
 
@@ -51,7 +51,9 @@ I also sweep over K from 1 to 50 and plot train vs test accuracy. The classic U-
 
 ## Computational Note
 
-KNN has no training cost but high *prediction* cost. For each test point you compute distances to every training point — that's $O(n \cdot d)$ per prediction. Real-world implementations use data structures like KD-trees or ball trees to speed this up. Here I just use brute force, which is fine for a few hundred points.
+## Complexity trade-offs
+
+KNN has zero training cost but high *prediction* cost. For each test point, you have to compute distances to every single training point. That makes prediction $O(n \cdot d)$, where $n$ is the number of training examples. Real-world libraries use KD-trees to speed this up, but here I used brute force to keep the implementation clean and understandable.
 
 ## Running It
 

@@ -12,25 +12,19 @@ $$
 \hat{y} = \sigma(Xw + b) = \frac{1}{1 + e^{-(Xw + b)}}
 $$
 
-## Loss Function
+## Loss Function: Shouting at the Model
 
-The right loss function here is **binary cross-entropy**, not MSE. Using MSE with a sigmoid output gives a non-convex loss surface. BCE stays convex:
+The "wrong" way to do this is with MSE. If you use MSE with a sigmoid, the loss surface gets all bumpy and it becomes easy to get stuck. Instead, we use **binary cross-entropy** (BCE). It's a convex loss (smooth bowl) that works perfectly with classification because it punishes confident mistakes exponentially. If the model is 99% sure it's a "0" when it's actually a "1," the loss blows up.
 
-$$
-L = -\frac{1}{n} \sum_{i=1}^{n} \left[ y_i \log \hat{y}_i + (1 - y_i) \log(1 - \hat{y}_i) \right]
-$$
+## Backpropagation (The Chain Rule)
 
-When the model is very confident and wrong, this blows up — which is exactly the behavior you want. Strong penalties for confident mistakes.
-
-## Backpropagation
-
-The backward pass has a nice simplification. If you differentiate BCE and then cascade through the sigmoid, the combined gradient of the loss with respect to the pre-sigmoid output $z = Xw + b$ is just:
+The math for the backward pass is actually really clean. If you differentiate the BCE loss and then multiply it by the derivative of the sigmoid (classic chain rule), a bunch of terms cancel out. The combined gradient for the whole "layer" is just:
 
 $$
 \frac{\partial L}{\partial z} = \frac{\hat{y} - y}{n}
 $$
 
-Clean. I computed it the long way (through `BinaryCrossentropy.backward` then `Sigmoid.backward`) just to make the code structure explicit, but the final expression is satisfying.
+I implemented it step-by-step (`BCE.backward` → `Sigmoid.backward`) just to follow the logic, but it's satisfying that after all that calculus, we're left with something so simple.
 
 ## What I Built
 

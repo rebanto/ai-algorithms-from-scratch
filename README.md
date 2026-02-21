@@ -1,6 +1,6 @@
 # AI From Scratch (NumPy Edition)
 
-I wanted to see how these algorithms actually work under the hood. No TensorFlow, no PyTube, no "magic" libraries—just raw **NumPy** and the math I (mostly) learned from exploration.
+I wanted to see how these algorithms actually work under the hood. No TensorFlow, no PyTorch, no "magic" libraries—just raw **NumPy** and the math I learned from diving deep into linear algebra and calculus.
 
 Most ML tutorials just tell you to import a library and call `.fit()`, which feels like cheating. This project is my attempt to build the "engines" from scratch: implementing the gradients, the backprop, and the decision logic from the ground up.
 
